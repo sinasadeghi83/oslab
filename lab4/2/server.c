@@ -47,7 +47,8 @@ int find_uidx(char clName[16])
     printf("\nuidx is %d\n", *uIDX);
     for (int i = 0; i < *uIDX; i++)
     {
-        if (strcmp(clName, clients[i].name) == 0)
+        printf("\nChecking %s ?= %s\t strcmp result: %d\n", clName, clients[i].name, strcmp(clName, clients[i].name));
+        if (strncmp(clName, clients[i].name, strlen(clients[i].name)) == 0)
         {
             return clients[i].id;
         }
@@ -111,29 +112,35 @@ int send_product(char name[16], int amount, char clName[16], char tgcl[16])
     int uidx = find_uidx(clName);
     if (uidx == -1)
     {
+        printf("\nTHIS USER NOT FOUND\n");
         return -1;
     }
 
     int tgidx = find_uidx(tgcl);
+    printf("\nTHIS TARGET USER %s\n", tgcl);
     if (tgidx == -1)
     {
+        printf("\nTARGET USER NOT FOUND\n");
         return -1;
     }
 
     int pidx;
     if (find_product(name, clName, &pidx) < 0)
     {
+        printf("\nPRODUCT NOT FOUND\n");
         return -1;
     }
 
     if (amount <= 0)
     {
+        printf("\nAMOUNT is below 0\n");
         return -1;
     }
     
     Product *prd = &prds[uidx][pidx];
     if (prd->count - amount < 0)
     {
+        printf("\nCOUNT - AMOUNT is below 0\n");
         return -1;
     }
 
@@ -322,11 +329,11 @@ int main(int argc, char const *argv[])
 void handle_client_command(int client_socket, char *command, char *clientName)
 {
     char response[1024];
-    char cmd[16], arg1[16];
+    char cmd[16], arg1[16], arg2[16];
     int amount = 0;
     int result = -1;
 
-    sscanf(command, "%s %s %d", cmd, arg1, &amount);
+    sscanf(command, "%s %s %d %s", cmd, arg1, &amount, arg2);
 
     if (strcmp(cmd, "list") == 0)
     {
@@ -381,6 +388,15 @@ void handle_client_command(int client_socket, char *command, char *clientName)
         else
         {
             snprintf(response, sizeof(response), "Failed to remove product %s\n", arg1);
+        }
+    }
+    else if(strcmp(cmd, "send") == 0){
+        if(send_product(arg1, amount, clientName, arg2) == 0){
+            snprintf(response, sizeof(response), "Product with count %d send to %s.\n", arg1, amount, arg2);
+        }
+        else
+        {
+            snprintf(response, sizeof(response), "Failed to send product to %s\n", arg2);
         }
     }
     else if (strcmp(cmd, "quit") == 0)
