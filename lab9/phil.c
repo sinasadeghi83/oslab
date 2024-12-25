@@ -7,30 +7,42 @@
 
 sem_t chopsticks[NUM_PHILOSOPHERS];
 
-void *philosopher(void *num) {
+void *philosopher(void *num)
+{
     int id = *(int *)num;
 
-    while (1) {
+    while (1)
+    {
         printf("Philosopher %d is thinking...\n", id);
         sleep(1);
 
-
         printf("Philosopher %d is hungry and trying to pick up chopsticks.\n", id);
-        printf("Philosopher %d is trying to pick up left chopstick.\n", id);
-        sem_wait(&chopsticks[id]); 
-        printf("Philosopher %d picked up left chopstick.\n", id);
-        sem_wait(&chopsticks[(id + 1) % NUM_PHILOSOPHERS]); 
-        printf("Philosopher %d picked up right chopstick.\n", id);
+        // added to handle deadlock
+        // evens pick right first and odds pick left first. so no deadlock can happen!
+        if (id % 2)
+        {
+            printf("Philosopher %d is trying to pick up left chopstick.\n", id);
+            sem_wait(&chopsticks[id]);
+            printf("Philosopher %d picked up left chopstick.\n", id);
+            sem_wait(&chopsticks[(id + 1) % NUM_PHILOSOPHERS]);
+            printf("Philosopher %d picked up right chopstick.\n", id);
+        }
+        else
+        {
+            printf("Philosopher %d is trying to pick up right chopstick.\n", id);
+            sem_wait(&chopsticks[(id + 1) % NUM_PHILOSOPHERS]);
+            printf("Philosopher %d picked up right chopstick.\n", id);
+            sem_wait(&chopsticks[id]);
+            printf("Philosopher %d picked up left chopstick.\n", id);
+        }
 
-     
         printf("Philosopher %d is eating.\n", id);
         sleep(2);
-
 
         printf("Philosopher %d put down left chopstick.\n", id);
         sem_post(&chopsticks[id]);
         printf("Philosopher %d put down right chopstick.\n", id);
-        sem_post(&chopsticks[(id + 1) % NUM_PHILOSOPHERS]); 
+        sem_post(&chopsticks[(id + 1) % NUM_PHILOSOPHERS]);
 
         printf("Philosopher %d has finished eating and is thinking again.\n", id);
     }
@@ -38,28 +50,29 @@ void *philosopher(void *num) {
     return NULL;
 }
 
-int main() {
+int main()
+{
     pthread_t threads[NUM_PHILOSOPHERS];
     int ids[NUM_PHILOSOPHERS];
 
- 
-    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++)
+    {
         sem_init(&chopsticks[i], 0, 1);
         ids[i] = i;
     }
 
-
-    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++)
+    {
         pthread_create(&threads[i], NULL, philosopher, &ids[i]);
     }
 
-
-    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++)
+    {
         pthread_join(threads[i], NULL);
     }
 
-
-    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
+    for (int i = 0; i < NUM_PHILOSOPHERS; i++)
+    {
         sem_destroy(&chopsticks[i]);
     }
 
