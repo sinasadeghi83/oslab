@@ -33,7 +33,7 @@ void *fun1() {
     shared = x; 
     printf("Value of shared variable updated by Thread1 is: %d\n", shared);
     sem_post(&s); 
-    return;
+    return (void*)0;
 }
 
 void *fun2() {
@@ -47,5 +47,5 @@ void *fun2() {
     shared = y; 
     printf("Value of shared variable updated by Thread2 is: %d\n", shared);
     sem_post(&s); 
-    return;
+    return (void*)0;
 }

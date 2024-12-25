@@ -33,7 +33,7 @@ void *reader(void *arg)
         }
         printf("Reader %ld reads buffer value: %d\n", id, buffer);
         lastread = buffer;
-        // sleep(1);
+        sleep(1);
         sem_post(&wait_reader);
         sem_post(&resource_access);
     }
@@ -50,7 +50,7 @@ void *writer(void *arg)
         sem_wait(&resource_access);
         buffer++;
         printf("Writer %ld writes buffer value: %d\n", id, buffer);
-        // sleep(1);
+        sleep(1);
         sem_post(&resource_access);
         sem_post(&wait_writer);
         sem_wait(&wait_reader);
@@ -87,7 +87,6 @@ int main()
     pthread_join(readers[0], NULL);
     pthread_join(readers[1], NULL);
 
-    // Clean up semaphores
     sem_destroy(&resource_access);
     sem_destroy(&wait_writer);
     sem_destroy(&wait_reader);
